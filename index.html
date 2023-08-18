@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>My Project App</title>
+</head>
+<body>
+    <h1>Welcome to My Project App</h1>
+    <ul>
+        <li><a href="upload.html">Upload Project</a></li>
+        <li><a href="view.html">View Project</a></li>
+        <li><a href="download.html">Download Project</a></li>
+    </ul>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Upload Project</title>
+</head>
+<body>
+    <h1>Upload Your Project</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="projectFile" name="projectFile" accept=".zip">
+        <button type="button" onclick="uploadProject()">Upload</button>
+    </form>
+    <p id="uploadStatus"></p>
+    <script src="script.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>View Project</title>
+</head>
+<body>
+    <h1>View Your Project</h1>
+    <iframe src="uploaded/project.html"></iframe>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Download Project</title>
+</head>
+<body>
+    <h1>Download Your Project</h1>
+    <a href="uploaded.zip" download>Download Project Files</a>
+</body>
+</html>
+function uploadProject() {
+    var formData = new FormData(document.getElementById('uploadForm'));
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'upload_handler.php', true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            document.getElementById('uploadStatus').textContent = xhr.responseText;
+        }
+    };
+    xhr.send(formData);
+}
+<?php
+if ($_FILES['projectFile']['error'] === UPLOAD_ERR_OK) {
+    $tempFile = $_FILES['projectFile']['tmp_name'];
+    $targetPath = 'uploaded/';
+    $targetFile = $targetPath . 'uploaded.zip';
+
+    if (move_uploaded_file($tempFile, $targetFile)) {
+        $zip = new ZipArchive();
+        if ($zip->open($targetFile) === true) {
+            $zip->extractTo($targetPath);
+            $zip->close();
+            echo 'Project uploaded and extracted successfully.';
+        } else {
+            echo 'Failed to extract project.';
+        }
+    } else {
+        echo 'Failed to upload project.';
+    }
+} else {
+    echo 'Error while uploading project.';
+}
+?>
